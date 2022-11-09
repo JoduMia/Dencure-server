@@ -6,9 +6,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-
-
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.cet8s8u.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
@@ -17,26 +14,20 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 const dbConnection = async () => {
     try {
         const database = client.db('dencure').collection('services');
+        const reviewDatabase = client.db('dencure').collection('reviews');
 
-        app.post('/services', async(req,res) => {
-            const result = await database.updateMany({},
-                {$set : {"reviews":[]}},
-                {upsert:false,
-                multi:true})
 
-                console.log(result);
-        })
-
-        app.patch('/addreview/:id', async(req,res) => {
+        app.post('/addreview/:id', async(req,res) => {
             const id = req.params.id;
-            const {name,message,rating,email,img} = req.body;
-            const query= {_id: ObjectId(id)};
-            const updateDoc = {author:name, email, message, img, rating, updated: new Date().getTime()}
+            const {name,message,rating,email,img, brief} = req.body;
+            const updateDoc = {
+                service: id,
+                message, email, author: name, heading: brief,
+                review: rating, avatar: img,
+                updateat: new Date().getTime()
+            };
 
-            const result = await database.updateOne(query ,{
-                $push: {reviews: updateDoc}
-            },{upsert:false,
-                multi:true})
+            const result = await reviewDatabase.insertOne(updateDoc);
 
             res.send({
                 status: 'successfull',
@@ -47,6 +38,20 @@ const dbConnection = async () => {
 
 
         //all the get mehods here
+        app.get('/reviews', async(req,res) => {
+            let query = {};
+            const email = req.query.email;
+            if(email){
+                query = {email: email}
+            }
+            const cursor = reviewDatabase.find(query);
+            const reviews = await cursor.toArray();
+            res.send({
+                status: 'success',
+                data: reviews
+            })
+        })
+
         app.get('/service3', async (req, res) => {
             const cursor = database.find({}).limit(3);
             const data = await cursor.toArray();
@@ -69,7 +74,18 @@ const dbConnection = async () => {
             res.send(data);
         })
 
-        //get methods ends here
+
+        app.get('/review/:id', async (req,res) => {
+            const id = req.params.id;
+            const query = {service: id};
+            const cursor = reviewDatabase.find(query);
+            const result = await cursor.toArray();
+            res.send(result)
+            console.log(result);
+        })
+
+
+
     }
     finally {}
 }
