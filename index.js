@@ -53,7 +53,7 @@ const dbConnection = async () => {
         })
 
         app.get('/service3', async (req, res) => {
-            const cursor = database.find({}).limit(3);
+            const cursor = database.find({}).sort({updatedAt:-1}).limit(3);
             const data = await cursor.toArray();
             res.send({
                 status: 'success',
