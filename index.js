@@ -84,6 +84,13 @@ const dbConnection = async () => {
             console.log(result);
         })
 
+        app.delete(`/delreview/:id`, async (req,res) => {
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const result = await reviewDatabase.deleteOne(query);
+            res.send(result);
+        })
+
 
 
     }
