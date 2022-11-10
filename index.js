@@ -95,6 +95,15 @@ const dbConnection = async () => {
             res.send(result)
         })
 
+        //get data to the update review page to set as a default value.
+        app.get('/getreview/:id', async (req,res) => {
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const result = await reviewDatabase.findOne(query);
+            console.log(id,result);
+            res.send(result)
+        })
+
         //delete review from the myreview section
         app.delete(`/delreview/:id`, async (req,res) => {
             const id = req.params.id;
