@@ -98,7 +98,7 @@ const dbConnection = async () => {
         //ending jsonwebtoken part here
 
         //get user review wtih sorting by updated time----
-        app.get('/reviewssort', async (req, res) => {
+        app.get('/reviews', async (req, res) => {
             let query = {};
             const email = req.query.email;
             if(email) {query = {email}}
