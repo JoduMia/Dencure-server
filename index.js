@@ -2,6 +2,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const jsonToken = require('jsonwebtoken');
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -9,12 +10,23 @@ app.use(express.json());
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.cet8s8u.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+//setup the middlewares for jsonweb authorization
+
+
 
 
 const dbConnection = async () => {
     try {
         const database = client.db('dencure').collection('services');
         const reviewDatabase = client.db('dencure').collection('reviews');
+
+        //getting the jwt token
+        app.post('/tokencollection', async (req,res) => {
+            const user = req.body;
+            console.log(user);
+            const token = jsonToken.sign(user, process.env.ACCESS_TOKEN, {expiresIn: '1h'});
+            res.send({token});
+        })
 
         //add reviews here
         app.post('/addreview/:id', async (req, res) => {
