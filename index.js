@@ -17,14 +17,14 @@ const dbConnection = async () => {
         const reviewDatabase = client.db('dencure').collection('reviews');
 
         //add reviews here
-        app.post('/addreview/:id', async(req,res) => {
+        app.post('/addreview/:id', async (req, res) => {
             const id = req.params.id;
-            const {name,message,rating,email,img, brief} = req.body;
+            const { name, message, rating, email, img, brief } = req.body;
             const updateDoc = {
                 service: id,
                 message, email, author: name, heading: brief,
                 review: rating, avatar: img,
-                updateat: new Date().getTime()
+                updateat: `${new Date().getTime()}`
             };
             const result = await reviewDatabase.insertOne(updateDoc);
             res.send({
@@ -35,10 +35,10 @@ const dbConnection = async () => {
         })
 
         //addservicess here
-        app.post('/addservice', async(req,res) => {
-            const {title,price, ratings,photo,desc} = req.body;
+        app.post('/addservice', async (req, res) => {
+            const { title, price, ratings, photo, desc } = req.body;
             const addService = {
-                title,price, ratings,photo,desc,
+                title, price, ratings, photo, desc,
                 updatedAt: `${new Date().getTime()}`
             };
             const result = await database.insertOne(addService);
@@ -51,11 +51,11 @@ const dbConnection = async () => {
 
 
         //all the get mehods here
-        app.get('/reviews', async(req,res) => {
+        app.get('/reviews', async (req, res) => {
             let query = {};
             const email = req.query.email;
-            if(email){
-                query = {email: email}
+            if (email) {
+                query = { email: email }
             }
             const cursor = reviewDatabase.find(query);
             const reviews = await cursor.toArray();
@@ -66,7 +66,7 @@ const dbConnection = async () => {
         })
 
         app.get('/service3', async (req, res) => {
-            const cursor = database.find({}).sort({updatedAt:-1}).limit(3);
+            const cursor = database.find({}).sort({ updatedAt: -1 }).limit(3);
             const data = await cursor.toArray();
             res.send({
                 status: 'success',
@@ -82,40 +82,54 @@ const dbConnection = async () => {
 
         app.get('/services/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: ObjectId(id)};
+            const query = { _id: ObjectId(id) };
             const data = await database.findOne(query);
             res.send(data);
         })
 
-        app.get('/review/:id', async (req,res) => {
+        app.get('/review/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {service: id};
+            const query = { service: id };
             const cursor = reviewDatabase.find(query);
             const result = await cursor.toArray();
             res.send(result)
         })
 
         //get data to the update review page to set as a default value.
-        app.get('/getreview/:id', async (req,res) => {
+        app.get('/getreview/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: ObjectId(id)};
+            const query = { _id: ObjectId(id) };
             const result = await reviewDatabase.findOne(query);
-            console.log(id,result);
             res.send(result)
         })
 
         //delete review from the myreview section
-        app.delete(`/delreview/:id`, async (req,res) => {
+        app.delete(`/delreview/:id`, async (req, res) => {
             const id = req.params.id;
-            const query = {_id: ObjectId(id)};
+            const query = { _id: ObjectId(id) };
             const result = await reviewDatabase.deleteOne(query);
             res.send(result);
+        })
+
+        app.patch('/updatereview/:id', async (req, res) => {
+            const { author, review, message, heading, avatar } = req.body;
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+
+            const dataToUpdate = {
+                $set: {
+                    author, review, message, heading, avatar,
+                    updateat: `${new Date().getTime()}`
+                }
+            }
+            const result = await reviewDatabase.updateOne(query, dataToUpdate);
+            res.send(result)
         })
 
 
 
     }
-    finally {}
+    finally { }
 }
 
 dbConnection()
