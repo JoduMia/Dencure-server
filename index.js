@@ -139,31 +139,6 @@ dbConnection()
     }))
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// const services = require('./service.json');
-
-
-// app.get('/services', (req,res) => {
-//     res.send(services)
-// })
-
-
-
-
-
 app.listen(process.env.PORT || 5000, () => {
     console.log(`server is listening on port:${process.env.PORT}`);
 })
