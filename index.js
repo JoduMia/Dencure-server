@@ -16,7 +16,7 @@ const dbConnection = async () => {
         const database = client.db('dencure').collection('services');
         const reviewDatabase = client.db('dencure').collection('reviews');
 
-
+        //add reviews here
         app.post('/addreview/:id', async(req,res) => {
             const id = req.params.id;
             const {name,message,rating,email,img, brief} = req.body;
@@ -26,9 +26,22 @@ const dbConnection = async () => {
                 review: rating, avatar: img,
                 updateat: new Date().getTime()
             };
-
             const result = await reviewDatabase.insertOne(updateDoc);
+            res.send({
+                status: 'successfull',
+                result: result
+            })
+            console.log(result);
+        })
 
+        //addservicess here
+        app.post('/addservice', async(req,res) => {
+            const {title,price, ratings,photo,desc} = req.body;
+            const addService = {
+                title,price, ratings,photo,desc,
+                updatedAt: `${new Date().getTime()}`
+            };
+            const result = await database.insertOne(addService);
             res.send({
                 status: 'successfull',
                 result: result
@@ -74,16 +87,15 @@ const dbConnection = async () => {
             res.send(data);
         })
 
-
         app.get('/review/:id', async (req,res) => {
             const id = req.params.id;
             const query = {service: id};
             const cursor = reviewDatabase.find(query);
             const result = await cursor.toArray();
             res.send(result)
-            console.log(result);
         })
 
+        //delete review from the myreview section
         app.delete(`/delreview/:id`, async (req,res) => {
             const id = req.params.id;
             const query = {_id: ObjectId(id)};
@@ -104,21 +116,6 @@ dbConnection()
     }))
 
 
-
-
-
-
-
-
-
-
-
-
-// client.connect(err => {
-//     const collection = client.db("dencure").collection("services");
-//     console.log('connected');
-//     client.close();
-// });
 
 
 
