@@ -141,6 +141,29 @@ const dbConnection = async () => {
             res.send(result)
         })
 
+        //allthe review grabs by pagination
+        app.get('/allreviews', async (req,res) => {
+            const page = req.query.page;
+            const size = req.query.size;
+            const cursor = reviewDatabase.find({});
+            const products = await cursor.skip(page* +size).limit(+size).toArray();
+            const count = await reviewDatabase.estimatedDocumentCount();
+
+            res.send({count,products});
+        })
+
+
+        app.get('/servicewithpagi', async (req,res) => {
+            const page = req.query.page;
+            const size = req.query.size;
+            const cursor = database.find({});
+            const products = await cursor.skip(page* +size).limit(+size).toArray();
+            const count = await database.estimatedDocumentCount();
+
+            res.send({count,products});
+        })
+
+
         //get data to the update review page to set as a default value.
         app.get('/getreview/:id', async (req, res) => {
             const id = req.params.id;
