@@ -11,7 +11,22 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@clu
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 //setup the middlewares for jsonweb authorization
-
+const verification = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).send({ message: 'You have no permission to access!!!' });
+    }
+    const token = authHeader.split(' ')[1];
+    console.log(token);
+    jsonToken.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+            console.log(err);
+            return res.status(401).send({ messsage: 'Unauthorized token' })
+        }
+        req.decoded = decoded;
+        next();
+    })
+};
 
 
 
@@ -21,11 +36,11 @@ const dbConnection = async () => {
         const reviewDatabase = client.db('dencure').collection('reviews');
 
         //getting the jwt token
-        app.post('/tokencollection', async (req,res) => {
+        app.post('/tokencollection', async (req, res) => {
             const user = req.body;
             console.log(user);
-            const token = jsonToken.sign(user, process.env.ACCESS_TOKEN, {expiresIn: '1h'});
-            res.send({token});
+            const token = jsonToken.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+            res.send({ token });
         })
 
         //add reviews here
@@ -62,13 +77,17 @@ const dbConnection = async () => {
         })
 
 
-        //all the get mehods here
-        app.get('/reviews', async (req, res) => {
+        //implementing jasonwebtoken middleware here
+        app.get('/reviews',verification, async (req, res) => {
             let query = {};
             const email = req.query.email;
-            if (email) {
-                query = { email: email }
+            const decoded = req.decoded;
+            if(decoded.email !== email){
+               return res.status(403).send({message: 'Unauthorized Access'})
             }
+
+            if(email) {query = {email}}
+
             const cursor = reviewDatabase.find(query);
             const reviews = await cursor.toArray();
             res.send({
@@ -76,6 +95,7 @@ const dbConnection = async () => {
                 data: reviews
             })
         })
+        //ending jsonwebtoken part here
 
         app.get('/service3', async (req, res) => {
             const cursor = database.find({}).sort({ updatedAt: -1 }).limit(3);
